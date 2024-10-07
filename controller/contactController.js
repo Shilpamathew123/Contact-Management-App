@@ -9,7 +9,7 @@ const contactModel = require('../models/contactModel')
 
 
 const getContacts =asyncHandler(async(req,res)=>{
-    const contacts=await Contact.find()   
+    const contacts=await Contact.find({user_id:req.user.id})   
     res.json(contacts)
 })
 
@@ -17,22 +17,7 @@ const getContacts =asyncHandler(async(req,res)=>{
 //@route Post api/contacts
 //@access private
 
-// const createContact=asyncHandler(async(req,res)=>{
-//     console.log("the request body is:",req.body)
-//     const {name,email,phn}=req.body;
-//     if(!name || !email || !phn){
-//         res.status(400)
-//         throw new Error("all field are required")
-//     }
-//     const contact=await Contact.create({
-//         name,
-//         email,
-//         phn,
-//     })
-//     res.json(contact);
-//     console.log(contact)
-       
-// })
+
 
 const createContact = asyncHandler(async (req, res) => {
     console.log("The request body is:", req.body);
@@ -51,6 +36,7 @@ const createContact = asyncHandler(async (req, res) => {
             name,
             email,
             phn,
+            user_id: req.user.id,
         });
 
         // Respond with the created contact
@@ -67,7 +53,7 @@ const createContact = asyncHandler(async (req, res) => {
 //@access private
 
 const getContact=asyncHandler(async(req,res)=>{
-const contact=await Contact.findById(req.params.id);
+const contact=await Contact.findById({user_id:req.params.id});
 if(!contact){
     res.status(404)
     throw new Error("Contact not found")
@@ -88,6 +74,12 @@ if(!contact){
  
 }
 
+if(contact.user_id.toString()!==req.user.id){
+    res.status(403)
+    throw new Error("Unauthorized to update this contact")
+ 
+};
+
 const updatedContact=await Contact.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -106,6 +98,12 @@ if(!contact){
     res.status(404)
     throw new Error("Contact not found")
 }
+
+if(contact.user_id.toString()!==req.user.id){
+    res.status(403)
+    throw new Error("Unauthorized to update this contact")
+ 
+};
 
 const deletedContact=await Contact.findByIdAndDelete(
     req.params.id,

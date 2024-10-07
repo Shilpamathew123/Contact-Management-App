@@ -84,12 +84,7 @@ const loginUser =asyncHandler(async(req,res)=>{
  // Assuming you're using this package for handling async errors
 
 const currentUser = asyncHandler(async (req, res) => {
-    if (!req.user) {
-        res.status(401).json({ message: "User not authenticated" });
-        return;
-    }
-    res.status(200).json(req.user);
-    console.log(req.user); // Logs user info for debugging
+    res.json(req.user) // Logs user info for debugging
 });
 
 

@@ -4,18 +4,22 @@ const jwt=require("jsonwebtoken")
 
 const validationToken=asyncHandler(async(req,res,next)=>{
     let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        try {
-            token = req.headers.authorization.split(' ')[1]; // Extract token
-            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); 
-            console.log('Decoded:', decoded); // Verify token
-            req.user = await User.findById(decoded.id).select('-password'); // Attach user to request
-            next();
-        } catch (error) {
-            res.status(401).json({ message: 'Not authorized, token failed' });
+    let authHeader=req.header.Authorization ||req.headers.authorization;
+    if(authHeader && authHeader.startsWith("Bearer ")){
+        token=authHeader.split(" ")[1];
+    }
+    jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
+        if(err) {
+            res.status(401)
+            throw new err("user not authenticated")
         }
-    } else {
-        res.status(401).json({ message: 'No token, authorization denied' });
+        req.user=decoded.user;
+        next();
+    })
+
+    if(!token){
+        res.status(401)
+        throw new Error("token not provided")
     }
 
 
